@@ -35,10 +35,7 @@
             color: var(--text-color);
             font-family: var(--font-heading);
             margin: 0;
-
-            /* Long scroll area */
             height: 1200vh;
-
             overflow-x: hidden;
         }
 
@@ -58,10 +55,7 @@
         .viz-container {
             display: flex;
             width: 100%;
-
-            /* CHANGED: Reduced slightly from 90vh to 85vh to make room for text below */
             height: 85vh;
-
             border-top: 9px solid var(--border-color);
             border-bottom: 9px solid var(--border-color);
             background-color: var(--card-bg);
@@ -119,13 +113,7 @@
         }
 
         .scroll-prompt {
-            /* CHANGED: Removed absolute positioning so it sits naturally below the canvas */
-            /* position: absolute; */
-            /* bottom: 10px; */
-
             margin-top: 20px;
-            /* Adds space between canvas and text */
-
             font-family: var(--font-data);
             font-size: 0.8rem;
             animation: blink 2s infinite;
@@ -192,7 +180,7 @@
     </div>
 
     <script>
-        // --- SKETCH 1: MAJORITY (Fast Growth) ---
+        // --- SKETCH 1: MAJORITY ---
         const s1 = (p) => {
             let currentString = "X";
             const rules = { "X": "F+[[X]-X]-F[-FX]+X", "F": "FF" };
@@ -214,15 +202,20 @@
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
 
-                // PRIVILEGE MULTIPLIER (1.5x)
                 let adjustedPercent = p.constrain(rawPercent * 1.5, 0, 1);
-
                 let charsToDraw = p.floor(p.map(adjustedPercent, 0, 1, 0, currentString.length));
 
                 document.getElementById('data-left').innerText = Math.floor(adjustedPercent * 100) + "%";
 
                 p.resetMatrix();
-                p.translate(p.width / 2, p.height);
+
+                // --- TRANSFORMATION CHANGE ---
+                // 1. Move origin to TOP CENTER (y = 0)
+                p.translate(p.width / 2, 0);
+                // 2. Rotate 180 degrees to flip drawing direction
+                p.rotate(180);
+                // -----------------------------
+
                 p.stroke(189, 239, 146);
                 p.strokeWeight(1);
 
@@ -253,7 +246,7 @@
             };
         };
 
-        // --- SKETCH 2: MINORITY (Slow, Stunted Growth) ---
+        // --- SKETCH 2: MINORITY ---
         const s2 = (p) => {
             let currentString = "F";
             const rules = { "F": "FF+[+F-F-F]-[-F+F+F]" };
@@ -275,16 +268,20 @@
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
 
-                // SUPPRESSION FACTOR (0.35)
                 let limit = 0.35;
                 let adjustedPercent = p.constrain(rawPercent * limit, 0, limit);
-
                 let charsToDraw = p.floor(p.map(rawPercent, 0, 1, 0, currentString.length * limit));
 
                 document.getElementById('data-right').innerText = Math.floor(adjustedPercent * 100) + "%";
 
                 p.resetMatrix();
-                p.translate(p.width / 2, p.height);
+
+                // --- TRANSFORMATION CHANGE ---
+                // 1. Move origin to TOP CENTER (y = 0)
+                p.translate(p.width / 2, 0);
+                // 2. Rotate 180 degrees to flip drawing direction
+                p.rotate(180);
+                // -----------------------------
 
                 p.stroke(85, 158, 81, 200);
                 p.strokeWeight(1.5);
