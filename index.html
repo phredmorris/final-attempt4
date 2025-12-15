@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Data Systems</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0d0f0b;
+            --card-bg: #0d0f0b;
+            --accent-color: #559e51;
+            --text-color: #bdef92;
+            --border-color: #bdef92;
+            --font-heading: 'Space Grotesk', sans-serif;
+            --font-data: 'Space Grotesk', monospace;
+        }
+
+        body {
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"),
+                radial-gradient(circle at center, #2a3028 0%, #0d0f0b 50%, #000000 100%);
+            background-color: #0d0f0b;
+            background-repeat: repeat, no-repeat;
+            background-size: 100px 100px, 200% 200%;
+            animation: drift-gradient 15s ease-in-out infinite;
+            background-attachment: fixed;
+            color: var(--text-color);
+            font-family: var(--font-heading);
+            margin: 0;
+
+            /* Long scroll area */
+            height: 1200vh;
+
+            overflow-x: hidden;
+        }
+
+        .center-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .viz-container {
+            display: flex;
+            width: 100%;
+
+            /* CHANGED: Reduced slightly from 90vh to 85vh to make room for text below */
+            height: 85vh;
+
+            border-top: 9px solid var(--border-color);
+            border-bottom: 9px solid var(--border-color);
+            background-color: var(--card-bg);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+        }
+
+        .canvas-panel {
+            flex: 1;
+            position: relative;
+            border-right: 11px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-panel:last-child {
+            border-right: none;
+        }
+
+        .panel-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: var(--font-data);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            background: #000;
+            color: var(--text-color);
+            padding: 5px 8px;
+            z-index: 10;
+            border: 1px solid var(--border-color);
+        }
+
+        .data-overlay {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            text-align: right;
+            pointer-events: none;
+        }
+
+        .data-overlay h3 {
+            font-family: var(--font-data);
+            font-size: 2rem;
+            margin: 0;
+            line-height: 1;
+            color: var(--text-color);
+        }
+
+        .data-overlay p {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            color: var(--accent-color);
+            margin: 0;
+        }
+
+        .scroll-prompt {
+            /* CHANGED: Removed absolute positioning so it sits naturally below the canvas */
+            /* position: absolute; */
+            /* bottom: 10px; */
+
+            margin-top: 20px;
+            /* Adds space between canvas and text */
+
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            animation: blink 2s infinite;
+            background: #000;
+            padding: 5px 10px;
+            border: 1px solid var(--accent-color);
+            z-index: 20;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes drift-gradient {
+            0% {
+                background-position: 0 0, 0% 0%;
+            }
+
+            50% {
+                background-position: 0 0, 100% 100%;
+            }
+
+            100% {
+                background-position: 0 0, 0% 0%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="center-wrapper">
+
+        <div class="viz-container">
+            <div class="canvas-panel" id="left-sketch">
+                <div class="panel-label">MAJORITY GROUP</div>
+                <div class="data-overlay">
+                    <h3 id="data-left">0%</h3>
+                    <p>RESOURCE ACCESS</p>
+                </div>
+            </div>
+
+            <div class="canvas-panel" id="right-sketch">
+                <div class="panel-label">MINORITY GROUP</div>
+                <div class="data-overlay">
+                    <h3 id="data-right">0%</h3>
+                    <p>RESOURCE ACCESS</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="scroll-prompt">
+            ▼ SCROLL TO DISTRIBUTE RESOURCES ▼
+        </div>
+
+    </div>
+
+    <script>
+        // --- SKETCH 1: MAJORITY (Fast Growth) ---
+        const s1 = (p) => {
+            let currentString = "X";
+            const rules = { "X": "F+[[X]-X]-F[-FX]+X", "F": "FF" };
+
+            const len = 6;
+            const angle = 25;
+            const iterations = 5;
+
+            p.setup = () => {
+                let container = document.getElementById('left-sketch');
+                let c = p.createCanvas(container.offsetWidth, container.offsetHeight);
+                p.angleMode(p.DEGREES);
+                for (let i = 0; i < iterations; i++) generate();
+            };
+
+            p.draw = () => {
+                p.background(13, 15, 11);
+
+                let maxScroll = document.body.scrollHeight - window.innerHeight;
+                let rawPercent = window.scrollY / maxScroll;
+
+                // PRIVILEGE MULTIPLIER (1.5x)
+                let adjustedPercent = p.constrain(rawPercent * 1.5, 0, 1);
+
+                let charsToDraw = p.floor(p.map(adjustedPercent, 0, 1, 0, currentString.length));
+
+                document.getElementById('data-left').innerText = Math.floor(adjustedPercent * 100) + "%";
+
+                p.resetMatrix();
+                p.translate(p.width / 2, p.height);
+                p.stroke(189, 239, 146);
+                p.strokeWeight(1);
+
+                for (let i = 0; i < charsToDraw; i++) {
+                    let c = currentString.charAt(i);
+                    if (c === "F") {
+                        p.line(0, 0, 0, -len);
+                        p.translate(0, -len);
+                    } else if (c === "+") p.rotate(angle);
+                    else if (c === "-") p.rotate(-angle);
+                    else if (c === "[") p.push();
+                    else if (c === "]") p.pop();
+                }
+            };
+
+            function generate() {
+                let next = "";
+                for (let i = 0; i < currentString.length; i++) {
+                    let nextChar = rules[currentString.charAt(i)];
+                    next += nextChar ? nextChar : currentString.charAt(i);
+                }
+                currentString = next;
+            }
+
+            p.windowResized = () => {
+                let container = document.getElementById('left-sketch');
+                p.resizeCanvas(container.offsetWidth, container.offsetHeight);
+            };
+        };
+
+        // --- SKETCH 2: MINORITY (Slow, Stunted Growth) ---
+        const s2 = (p) => {
+            let currentString = "F";
+            const rules = { "F": "FF+[+F-F-F]-[-F+F+F]" };
+
+            const len = 7;
+            const angle = 22;
+            const iterations = 4;
+
+            p.setup = () => {
+                let container = document.getElementById('right-sketch');
+                let c = p.createCanvas(container.offsetWidth, container.offsetHeight);
+                p.angleMode(p.DEGREES);
+                for (let i = 0; i < iterations; i++) generate();
+            };
+
+            p.draw = () => {
+                p.background(13, 15, 11);
+
+                let maxScroll = document.body.scrollHeight - window.innerHeight;
+                let rawPercent = window.scrollY / maxScroll;
+
+                // SUPPRESSION FACTOR (0.35)
+                let limit = 0.35;
+                let adjustedPercent = p.constrain(rawPercent * limit, 0, limit);
+
+                let charsToDraw = p.floor(p.map(rawPercent, 0, 1, 0, currentString.length * limit));
+
+                document.getElementById('data-right').innerText = Math.floor(adjustedPercent * 100) + "%";
+
+                p.resetMatrix();
+                p.translate(p.width / 2, p.height);
+
+                p.stroke(85, 158, 81, 200);
+                p.strokeWeight(1.5);
+
+                for (let i = 0; i < charsToDraw; i++) {
+                    let c = currentString.charAt(i);
+                    if (c === "F") {
+                        p.line(0, 0, 0, -len);
+                        p.translate(0, -len);
+                    } else if (c === "+") p.rotate(angle);
+                    else if (c === "-") p.rotate(-angle);
+                    else if (c === "[") p.push();
+                    else if (c === "]") p.pop();
+                }
+            };
+
+            function generate() {
+                let next = "";
+                for (let i = 0; i < currentString.length; i++) {
+                    let nextChar = rules[currentString.charAt(i)];
+                    next += nextChar ? nextChar : currentString.charAt(i);
+                }
+                currentString = next;
+            }
+
+            p.windowResized = () => {
+                let container = document.getElementById('right-sketch');
+                p.resizeCanvas(container.offsetWidth, container.offsetHeight);
+            };
+        };
+
+        new p5(s1, 'left-sketch');
+        new p5(s2, 'right-sketch');
+    </script>
+</body>
+
+</html>
