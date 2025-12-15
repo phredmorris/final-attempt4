@@ -60,7 +60,11 @@
             border-bottom: 9px solid var(--border-color);
             background-color: var(--card-bg);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
             pointer-events: auto;
+
+            top: -2vh;
+
         }
 
         .canvas-panel {
@@ -112,15 +116,88 @@
             margin: 0;
         }
 
+        /* --- CENTERED SWITCH --- */
+        .switch-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: #0d0f0b;
+            padding: 15px 25px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 10px;
+            width: 10px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        /* --- SCROLL PROMPT (Moved to Top) --- */
         .scroll-prompt {
-            margin-top: 20px;
+            /* Replaced margin-top with margin-bottom */
+            margin-bottom: 20px;
+
             font-family: var(--font-data);
             font-size: 0.8rem;
             animation: blink 2s infinite;
             background: #000;
             padding: 5px 10px;
             border: 1px solid var(--accent-color);
-            z-index: 20;
+            pointer-events: auto;
+
         }
 
         @keyframes blink {
@@ -155,7 +232,22 @@
 
     <div class="center-wrapper">
 
+        <div class="scroll-prompt">
+            ▼ SCROLL TO DISTRIBUTE RESOURCES ▼
+        </div>
+
         <div class="viz-container">
+
+            <div class="switch-container">
+                <div class="switch-wrapper">
+                    <span>AUTO-SEQ</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-scroll-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
             <div class="canvas-panel" id="left-sketch">
                 <div class="panel-label">MAJORITY GROUP</div>
                 <div class="data-overlay">
@@ -171,20 +263,45 @@
                     <p>RESOURCE ACCESS</p>
                 </div>
             </div>
-        </div>
 
-        <div class="scroll-prompt">
-            ▼ SCROLL TO DISTRIBUTE RESOURCES ▼
         </div>
 
     </div>
 
     <script>
-        // --- SKETCH 1: MAJORITY (Blue Berries) ---
+        const toggleInput = document.getElementById('auto-scroll-toggle');
+        let autoScrollSpeed = 3;
+
+        function performScroll() {
+            if (toggleInput.checked) {
+                window.scrollBy(0, autoScrollSpeed);
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+                    toggleInput.checked = false;
+                } else {
+                    requestAnimationFrame(performScroll);
+                }
+            }
+        }
+
+        toggleInput.addEventListener('change', () => {
+            if (toggleInput.checked) {
+                performScroll();
+            }
+        });
+
+        const stopEvents = ['wheel', 'mousedown', 'touchstart', 'keydown', 'touchmove'];
+        stopEvents.forEach(event => {
+            window.addEventListener(event, () => {
+                if (toggleInput.checked) {
+                    toggleInput.checked = false;
+                }
+            }, { passive: true });
+        });
+
+        // --- SKETCH 1: MAJORITY ---
         const s1 = (p) => {
             let currentString = "X";
             const rules = { "X": "F+[[X]-X]-F[-FX]+X", "F": "FF" };
-
             const len = 6;
             const angle = 25;
             const iterations = 5;
@@ -198,10 +315,8 @@
 
             p.draw = () => {
                 p.background(13, 15, 11);
-
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
-
                 let adjustedPercent = p.constrain(rawPercent * 1.5, 0, 1);
                 let charsToDraw = p.floor(p.map(adjustedPercent, 0, 1, 0, currentString.length));
 
@@ -220,11 +335,10 @@
                         p.line(0, 0, 0, -len);
                         p.translate(0, -len);
                     }
-                    // --- FIX: DETECT 'X' FOR LEFT SIDE BERRIES ---
                     else if (c === "X") {
                         p.push();
                         p.noStroke();
-                        p.fill(60, 120, 255); // Blue Berry
+                        p.fill(60, 120, 255);
                         p.circle(0, 0, 4);
                         p.pop();
                     }
@@ -250,11 +364,10 @@
             };
         };
 
-        // --- SKETCH 2: MINORITY (Red Berries) ---
+        // --- SKETCH 2: MINORITY ---
         const s2 = (p) => {
             let currentString = "F";
             const rules = { "F": "FF+[+F-F-F]-[-F+F+F]" };
-
             const len = 7;
             const angle = 22;
             const iterations = 4;
@@ -268,10 +381,8 @@
 
             p.draw = () => {
                 p.background(13, 15, 11);
-
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
-
                 let limit = 0.35;
                 let adjustedPercent = p.constrain(rawPercent * limit, 0, limit);
                 let charsToDraw = p.floor(p.map(rawPercent, 0, 1, 0, currentString.length * limit));
@@ -291,11 +402,10 @@
                         p.line(0, 0, 0, -len);
                         p.translate(0, -len);
 
-                        // --- DETECT END OF BRANCH FOR RIGHT SIDE ---
                         if (currentString.charAt(i + 1) === ']') {
                             p.push();
                             p.noStroke();
-                            p.fill(220, 40, 40); // Red Berry
+                            p.fill(220, 40, 40);
                             p.circle(0, 0, 5);
                             p.pop();
                         }
