@@ -56,15 +56,17 @@
             pointer-events: none;
         }
 
+        /* --- TOP CONTAINER (CANVASES) --- */
         .viz-container {
             display: flex;
             width: 100%;
             height: 85vh;
+
             border-top: 9px solid var(--border-color);
             border-bottom: 9px solid var(--border-color);
-            /* Ensure no side borders exist here to match the key below */
             border-left: none;
             border-right: none;
+
             background-color: var(--card-bg);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             position: relative;
@@ -73,9 +75,10 @@
         }
 
         .canvas-panel {
-            flex: 1;
+            flex: 0 0 50%;
+            max-width: 50%;
             position: relative;
-            border-right: 11px solid var(--border-color);
+            border-right: 15px solid var(--border-color);
             display: flex;
             flex-direction: column;
         }
@@ -125,7 +128,7 @@
         .switch-container {
             position: absolute;
             top: 50%;
-            left: 50%;
+            left: 49.8%;
             transform: translate(-50%, -50%);
             z-index: 100;
             display: flex;
@@ -144,50 +147,40 @@
             padding: 15px 25px;
             border: 2px solid var(--border-color);
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            cursor: pointer;
+            user-select: none;
         }
 
-        .toggle-switch {
+        .switch-wrapper input {
+            display: none;
+        }
+
+        .toggle-track {
             position: relative;
-            display: inline-block;
             width: 40px;
             height: 20px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
             background-color: #333;
-            transition: .4s;
             border: 1px solid var(--border-color);
+            transition: background-color 0.2s;
         }
 
-        .slider:before {
-            position: absolute;
+        .toggle-track:before {
             content: "";
-            height: 10px;
-            width: 10px;
-            left: 4px;
-            bottom: 4px;
+            position: absolute;
+            height: 12px;
+            width: 12px;
+            left: 3px;
+            bottom: 3px;
             background-color: white;
-            transition: .4s;
+            transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
-        input:checked+.slider {
-            background-color: var(--accent-color);
-        }
-
-        input:checked+.slider:before {
+        .switch-wrapper input:checked+.toggle-track:before {
             transform: translateX(20px);
+        }
+
+        .switch-wrapper input:checked+.toggle-track {
+            background-color: var(--accent-color);
         }
 
         /* --- SCROLL PROMPT --- */
@@ -205,21 +198,14 @@
             pointer-events: auto;
         }
 
-        /* =========================================
-       DATA KEY / LEGEND STYLES (FIXED ALIGNMENT)
-       ========================================= */
+        /* --- BOTTOM CONTAINER (KEY) --- */
         .key-container {
-            width: 100%;
             display: flex;
-
-            /* ALIGNMENT FIX: 
-         Removed the 'border: 2px solid' which created side borders.
-         Replaced with Top/Bottom only to match the canvases exactly. */
+            width: 100%;
             border-top: 2px solid var(--border-color);
             border-bottom: 2px solid var(--border-color);
             border-left: none;
             border-right: none;
-
             background-color: var(--card-bg);
             margin-top: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -229,10 +215,10 @@
         }
 
         .key-panel {
-            flex: 1;
+            flex: 0 0 50%;
+            max-width: 50%;
             padding: 15px;
-            /* This 11px border now aligns perfectly with the canvas 11px border above */
-            border-right: 11px solid var(--border-color);
+            border-right: 15px solid var(--border-color);
             font-family: var(--font-data);
             font-size: 0.7rem;
             color: var(--text-color);
@@ -330,13 +316,11 @@
         <div class="viz-container">
 
             <div class="switch-container">
-                <div class="switch-wrapper">
+                <label class="switch-wrapper">
                     <span>AUTO-SEQ</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="auto-scroll-toggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                    <input type="checkbox" id="auto-scroll-toggle">
+                    <div class="toggle-track"></div>
+                </label>
             </div>
 
             <div class="canvas-panel" id="left-sketch">
@@ -386,7 +370,7 @@
 
     <script>
         const toggleInput = document.getElementById('auto-scroll-toggle');
-        let autoScrollSpeed = 3;
+        let autoScrollSpeed = 1.5; // Pixels per frame
 
         function performScroll() {
             if (toggleInput.checked) {
@@ -399,15 +383,27 @@
             }
         }
 
+        // Event Listener for the switch
         toggleInput.addEventListener('change', () => {
             if (toggleInput.checked) {
                 performScroll();
             }
         });
 
+        // FIX: GLOBAL STOP LISTENERS
+        // We added a check to ignore clicks if they originate from the switch itself.
+        // This prevents the switch from fighting itself.
         const stopEvents = ['wheel', 'mousedown', 'touchstart', 'keydown', 'touchmove'];
         stopEvents.forEach(event => {
-            window.addEventListener(event, () => {
+            window.addEventListener(event, (e) => {
+
+                // 1. Check if the click happened inside the switch container
+                if (e.target && e.target.closest('.switch-container')) {
+                    // If yes, do nothing (let the switch toggle normally)
+                    return;
+                }
+
+                // 2. Otherwise, if the auto-scroll is ON, turn it OFF
                 if (toggleInput.checked) {
                     toggleInput.checked = false;
                 }
@@ -426,7 +422,7 @@
 
             p.setup = () => {
                 let container = document.getElementById('left-sketch');
-                let c = p.createCanvas(container.offsetWidth, container.offsetHeight);
+                let c = p.createCanvas(container.clientWidth, container.offsetHeight);
                 p.angleMode(p.DEGREES);
                 for (let i = 0; i < iterations; i++) generate();
             };
@@ -457,7 +453,6 @@
                         p.translate(0, -len);
                     }
                     else if (c === "X") {
-                        // SOURCE: High Deal Volume
                         p.push();
                         p.noStroke();
                         p.fill(60, 120, 255);
@@ -482,7 +477,7 @@
 
             p.windowResized = () => {
                 let container = document.getElementById('left-sketch');
-                p.resizeCanvas(container.offsetWidth, container.offsetHeight);
+                let c = p.createCanvas(container.clientWidth, container.offsetHeight);
             };
         };
 
@@ -498,7 +493,7 @@
 
             p.setup = () => {
                 let container = document.getElementById('right-sketch');
-                let c = p.createCanvas(container.offsetWidth, container.offsetHeight);
+                let c = p.createCanvas(container.clientWidth, container.offsetHeight);
                 p.angleMode(p.DEGREES);
                 for (let i = 0; i < iterations; i++) generate();
             };
@@ -531,12 +526,8 @@
                         p.line(0, 0, 0, -len);
                         p.translate(0, -len);
 
-                        // FIX: STABLE BERRY LOGIC
-                        // Instead of p.random(), we use math on the index 'i'.
-                        // This ensures the decision is tied to the branch's position, 
-                        // so it stays solid and doesn't flicker.
+                        // Stable Berry Logic
                         if (currentString.charAt(i + 1) === ']') {
-                            // This math creates a "random-looking" but permanent 5% chance
                             if ((i * 12345) % 100 < 5) {
                                 p.push();
                                 p.noStroke();
@@ -563,7 +554,7 @@
 
             p.windowResized = () => {
                 let container = document.getElementById('right-sketch');
-                p.resizeCanvas(container.offsetWidth, container.offsetHeight);
+                let c = p.createCanvas(container.clientWidth, container.offsetHeight);
             };
         };
 
