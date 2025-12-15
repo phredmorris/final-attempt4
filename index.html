@@ -62,11 +62,13 @@
             height: 85vh;
             border-top: 9px solid var(--border-color);
             border-bottom: 9px solid var(--border-color);
+            /* Ensure no side borders exist here to match the key below */
+            border-left: none;
+            border-right: none;
             background-color: var(--card-bg);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             position: relative;
-            top: -2vh;
-            /* Adjusted slightly to make room for key below */
+            top: 0;
             pointer-events: auto;
         }
 
@@ -188,7 +190,7 @@
             transform: translateX(20px);
         }
 
-        /* --- SCROLL PROMPT (TOP) --- */
+        /* --- SCROLL PROMPT --- */
         .scroll-prompt {
             position: absolute;
             top: 3vh;
@@ -204,27 +206,32 @@
         }
 
         /* =========================================
-       NEW: DATA KEY / LEGEND STYLES
+       DATA KEY / LEGEND STYLES (FIXED ALIGNMENT)
        ========================================= */
         .key-container {
-            /* Matches width of viz-container */
             width: 100%;
             display: flex;
-            border: 2px solid var(--border-color);
+
+            /* ALIGNMENT FIX: 
+         Removed the 'border: 2px solid' which created side borders.
+         Replaced with Top/Bottom only to match the canvases exactly. */
+            border-top: 2px solid var(--border-color);
+            border-bottom: 2px solid var(--border-color);
+            border-left: none;
+            border-right: none;
+
             background-color: var(--card-bg);
             margin-top: 15px;
-            /* Space between viz and key */
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             pointer-events: auto;
             position: relative;
-            top: -2vh;
-            /* Align with viz-container shift */
+            top: 0;
         }
 
         .key-panel {
             flex: 1;
             padding: 15px;
-            /* Matches the 11px divider of the canvases above for visual continuity */
+            /* This 11px border now aligns perfectly with the canvas 11px border above */
             border-right: 11px solid var(--border-color);
             font-family: var(--font-data);
             font-size: 0.7rem;
@@ -252,7 +259,6 @@
             line-height: 1.2;
         }
 
-        /* Swatches for the legend */
         .color-swatch {
             display: inline-block;
             width: 10px;
@@ -269,7 +275,6 @@
             width: 15px;
         }
 
-        /* Match p5 sketch RGB values exactly */
         .plant-left-color {
             background-color: rgb(189, 239, 146);
         }
@@ -285,7 +290,6 @@
         .berry-right-color {
             background-color: rgb(220, 40, 40);
         }
-
 
         @keyframes blink {
 
@@ -336,18 +340,18 @@
             </div>
 
             <div class="canvas-panel" id="left-sketch">
-                <div class="panel-label">MAJORITY GROUP</div>
+                <div class="panel-label">ALL OTHER ENTREPRENEURS</div>
                 <div class="data-overlay">
                     <h3 id="data-left">0%</h3>
-                    <p>SHARE OF FUNDING</p>
+                    <p>VC FUNDING SHARE</p>
                 </div>
             </div>
 
             <div class="canvas-panel" id="right-sketch">
-                <div class="panel-label">MINORITY GROUP</div>
+                <div class="panel-label">BLACK ENTREPRENEURS</div>
                 <div class="data-overlay">
                     <h3 id="data-right">0%</h3>
-                    <p>SHARE OF FUNDING</p>
+                    <p>VC FUNDING SHARE</p>
                 </div>
             </div>
 
@@ -355,7 +359,7 @@
 
         <div class="key-container">
             <div class="key-panel">
-                <h3>DATA KEY: MAJORITY</h3>
+                <h3>DATA KEY: OTHER ENTREPRENEURS (Non-Black)</h3>
                 <div class="key-item">
                     <span class="color-swatch swatch-line plant-left-color"></span>
                     GROWTH: Represents ~99.5% of total VC funding ($140B+).
@@ -366,7 +370,7 @@
                 </div>
             </div>
             <div class="key-panel">
-                <h3>DATA KEY: MINORITY (Black Founders)</h3>
+                <h3>DATA KEY: BLACK ENTREPRENEURS</h3>
                 <div class="key-item">
                     <span class="color-swatch swatch-line plant-right-color"></span>
                     GROWTH: Represents ~0.5% of total VC funding ($700M).
@@ -506,7 +510,6 @@
                 let rawPercent = window.scrollY / maxScroll;
 
                 // SOURCE: Crunchbase 2024 Report (0.5% share)
-                // Visual limit set to 15% for visibility, text shows real data.
                 let limit = 0.15;
 
                 let adjustedPercent = p.constrain(rawPercent * limit, 0, limit);
@@ -528,9 +531,13 @@
                         p.line(0, 0, 0, -len);
                         p.translate(0, -len);
 
-                        // SOURCE: Low Deal Volume (5% chance)
+                        // FIX: STABLE BERRY LOGIC
+                        // Instead of p.random(), we use math on the index 'i'.
+                        // This ensures the decision is tied to the branch's position, 
+                        // so it stays solid and doesn't flicker.
                         if (currentString.charAt(i + 1) === ']') {
-                            if (p.random() < 0.05) {
+                            // This math creates a "random-looking" but permanent 5% chance
+                            if ((i * 12345) % 100 < 5) {
                                 p.push();
                                 p.noStroke();
                                 p.fill(220, 40, 40);
