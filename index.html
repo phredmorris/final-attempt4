@@ -180,7 +180,7 @@
     </div>
 
     <script>
-        // --- SKETCH 1: MAJORITY ---
+        // --- SKETCH 1: MAJORITY (Blue Berries) ---
         const s1 = (p) => {
             let currentString = "X";
             const rules = { "X": "F+[[X]-X]-F[-FX]+X", "F": "FF" };
@@ -208,13 +208,8 @@
                 document.getElementById('data-left').innerText = Math.floor(adjustedPercent * 100) + "%";
 
                 p.resetMatrix();
-
-                // --- TRANSFORMATION CHANGE ---
-                // 1. Move origin to TOP CENTER (y = 0)
                 p.translate(p.width / 2, 0);
-                // 2. Rotate 180 degrees to flip drawing direction
                 p.rotate(180);
-                // -----------------------------
 
                 p.stroke(189, 239, 146);
                 p.strokeWeight(1);
@@ -224,7 +219,16 @@
                     if (c === "F") {
                         p.line(0, 0, 0, -len);
                         p.translate(0, -len);
-                    } else if (c === "+") p.rotate(angle);
+                    }
+                    // --- FIX: DETECT 'X' FOR LEFT SIDE BERRIES ---
+                    else if (c === "X") {
+                        p.push();
+                        p.noStroke();
+                        p.fill(60, 120, 255); // Blue Berry
+                        p.circle(0, 0, 4);
+                        p.pop();
+                    }
+                    else if (c === "+") p.rotate(angle);
                     else if (c === "-") p.rotate(-angle);
                     else if (c === "[") p.push();
                     else if (c === "]") p.pop();
@@ -246,7 +250,7 @@
             };
         };
 
-        // --- SKETCH 2: MINORITY ---
+        // --- SKETCH 2: MINORITY (Red Berries) ---
         const s2 = (p) => {
             let currentString = "F";
             const rules = { "F": "FF+[+F-F-F]-[-F+F+F]" };
@@ -275,13 +279,8 @@
                 document.getElementById('data-right').innerText = Math.floor(adjustedPercent * 100) + "%";
 
                 p.resetMatrix();
-
-                // --- TRANSFORMATION CHANGE ---
-                // 1. Move origin to TOP CENTER (y = 0)
                 p.translate(p.width / 2, 0);
-                // 2. Rotate 180 degrees to flip drawing direction
                 p.rotate(180);
-                // -----------------------------
 
                 p.stroke(85, 158, 81, 200);
                 p.strokeWeight(1.5);
@@ -291,6 +290,15 @@
                     if (c === "F") {
                         p.line(0, 0, 0, -len);
                         p.translate(0, -len);
+
+                        // --- DETECT END OF BRANCH FOR RIGHT SIDE ---
+                        if (currentString.charAt(i + 1) === ']') {
+                            p.push();
+                            p.noStroke();
+                            p.fill(220, 40, 40); // Red Berry
+                            p.circle(0, 0, 5);
+                            p.pop();
+                        }
                     } else if (c === "+") p.rotate(angle);
                     else if (c === "-") p.rotate(-angle);
                     else if (c === "[") p.push();
