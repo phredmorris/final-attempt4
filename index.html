@@ -28,7 +28,6 @@
         }
 
         body {
-            /* THE MOVING THING (Noise + Gradient) */
             background-image:
                 url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"),
                 radial-gradient(circle at center, #2a3028 0%, #0d0f0b 50%, #000000 100%);
@@ -68,7 +67,6 @@
             border-left: none;
             border-right: none;
 
-            /* CHANGED: Transparent so the animated body background shows through */
             background-color: transparent;
 
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -82,7 +80,6 @@
             max-width: 50%;
             position: relative;
 
-            /* You can adjust thickness here */
             border-right: 11px solid var(--border-color);
 
             display: flex;
@@ -121,7 +118,6 @@
             margin: 0;
             line-height: 1;
             color: var(--text-color);
-            /* Added text shadow so it pops against the noise */
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         }
 
@@ -131,7 +127,6 @@
             color: var(--accent-color);
             margin: 0;
             background: rgba(0, 0, 0, 0.6);
-            /* Small backing for readability */
             padding: 2px 5px;
         }
 
@@ -194,15 +189,22 @@
             background-color: var(--accent-color);
         }
 
-        /* --- SCROLL PROMPT --- */
+        /* --- SCROLL PROMPT (Above Button, No Flashing) --- */
         .scroll-prompt {
             position: absolute;
-            top: 3vh;
+
+            /* Positioned just above the center switch (which is at 50%) */
+            top: 43%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -100%);
+
+            z-index: 50;
             font-family: var(--font-data);
             font-size: 0.8rem;
-            animation: blink 2s infinite;
+
+            /* Animation Removed */
+            /* animation: blink 2s infinite; */
+
             background: #000;
             padding: 5px 10px;
             border: 1px solid var(--accent-color);
@@ -229,7 +231,6 @@
             flex: 0 0 50%;
             max-width: 50%;
             padding: 15px;
-            /* Adjust thickness here to match canvas-panel */
             border-right: 11px solid var(--border-color);
             font-family: var(--font-data);
             font-size: 0.7rem;
@@ -289,18 +290,6 @@
             background-color: rgb(220, 40, 40);
         }
 
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
         @keyframes drift-gradient {
             0% {
                 background-position: 0 0, 0% 0%;
@@ -321,11 +310,11 @@
 
     <div class="center-wrapper">
 
-        <div class="scroll-prompt">
-            ▼ SCROLL TO DISTRIBUTE RESOURCES ▼
-        </div>
-
         <div class="viz-container">
+
+            <div class="scroll-prompt">
+                ▼ SCROLL TO DISTRIBUTE RESOURCES ▼
+            </div>
 
             <div class="switch-container">
                 <label class="switch-wrapper">
@@ -425,19 +414,18 @@
 
             p.setup = () => {
                 let container = document.getElementById('left-sketch');
-                // FIX: Use clientWidth to respect border thickness
                 let c = p.createCanvas(container.clientWidth, container.offsetHeight);
                 p.angleMode(p.DEGREES);
                 for (let i = 0; i < iterations; i++) generate();
             };
 
             p.draw = () => {
-                // FIX: Use clear() instead of background() to let noise show through
                 p.clear();
 
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
 
+                // SOURCE: Crunchbase 2024 Report (99.5% share)
                 let adjustedPercent = p.constrain(rawPercent * 1.5, 0, 1);
                 let charsToDraw = p.floor(p.map(adjustedPercent, 0, 1, 0, currentString.length));
 
@@ -497,19 +485,18 @@
 
             p.setup = () => {
                 let container = document.getElementById('right-sketch');
-                // FIX: Use clientWidth here too
                 let c = p.createCanvas(container.clientWidth, container.offsetHeight);
                 p.angleMode(p.DEGREES);
                 for (let i = 0; i < iterations; i++) generate();
             };
 
             p.draw = () => {
-                // FIX: Use clear() instead of background()
                 p.clear();
 
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
 
+                // SOURCE: Crunchbase 2024 Report (0.5% share)
                 let limit = 0.15;
 
                 let adjustedPercent = p.constrain(rawPercent * limit, 0, limit);
