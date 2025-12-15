@@ -13,6 +13,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         :root {
             --bg-color: #0d0f0b;
             --card-bg: #0d0f0b;
@@ -61,10 +65,9 @@
             background-color: var(--card-bg);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             position: relative;
-            pointer-events: auto;
-
             top: -2vh;
-
+            /* Adjusted slightly to make room for key below */
+            pointer-events: auto;
         }
 
         .canvas-panel {
@@ -116,11 +119,11 @@
             margin: 0;
         }
 
-        /* --- CENTERED SWITCH --- */
+        /* --- SWITCH STYLES --- */
         .switch-container {
             position: absolute;
             top: 50%;
-            left: 50.6%;
+            left: 50%;
             transform: translate(-50%, -50%);
             z-index: 100;
             display: flex;
@@ -185,11 +188,12 @@
             transform: translateX(20px);
         }
 
-        /* --- SCROLL PROMPT (Moved to Top) --- */
+        /* --- SCROLL PROMPT (TOP) --- */
         .scroll-prompt {
-            /* Replaced margin-top with margin-bottom */
-            margin-bottom: 20px;
-
+            position: absolute;
+            top: 3vh;
+            left: 50%;
+            transform: translateX(-50%);
             font-family: var(--font-data);
             font-size: 0.8rem;
             animation: blink 2s infinite;
@@ -197,8 +201,91 @@
             padding: 5px 10px;
             border: 1px solid var(--accent-color);
             pointer-events: auto;
-
         }
+
+        /* =========================================
+       NEW: DATA KEY / LEGEND STYLES
+       ========================================= */
+        .key-container {
+            /* Matches width of viz-container */
+            width: 100%;
+            display: flex;
+            border: 2px solid var(--border-color);
+            background-color: var(--card-bg);
+            margin-top: 15px;
+            /* Space between viz and key */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+            position: relative;
+            top: -2vh;
+            /* Align with viz-container shift */
+        }
+
+        .key-panel {
+            flex: 1;
+            padding: 15px;
+            /* Matches the 11px divider of the canvases above for visual continuity */
+            border-right: 11px solid var(--border-color);
+            font-family: var(--font-data);
+            font-size: 0.7rem;
+            color: var(--text-color);
+        }
+
+        .key-panel:last-child {
+            border-right: none;
+        }
+
+        .key-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--accent-color);
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .key-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        /* Swatches for the legend */
+        .color-swatch {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            flex-shrink: 0;
+        }
+
+        .swatch-round {
+            border-radius: 50%;
+        }
+
+        .swatch-line {
+            height: 3px;
+            width: 15px;
+        }
+
+        /* Match p5 sketch RGB values exactly */
+        .plant-left-color {
+            background-color: rgb(189, 239, 146);
+        }
+
+        .berry-left-color {
+            background-color: rgb(60, 120, 255);
+        }
+
+        .plant-right-color {
+            background-color: rgba(85, 158, 81, 0.8);
+        }
+
+        .berry-right-color {
+            background-color: rgb(220, 40, 40);
+        }
+
 
         @keyframes blink {
 
@@ -252,7 +339,7 @@
                 <div class="panel-label">MAJORITY GROUP</div>
                 <div class="data-overlay">
                     <h3 id="data-left">0%</h3>
-                    <p>RESOURCE ACCESS</p>
+                    <p>SHARE OF FUNDING</p>
                 </div>
             </div>
 
@@ -260,10 +347,35 @@
                 <div class="panel-label">MINORITY GROUP</div>
                 <div class="data-overlay">
                     <h3 id="data-right">0%</h3>
-                    <p>RESOURCE ACCESS</p>
+                    <p>SHARE OF FUNDING</p>
                 </div>
             </div>
 
+        </div>
+
+        <div class="key-container">
+            <div class="key-panel">
+                <h3>DATA KEY: MAJORITY</h3>
+                <div class="key-item">
+                    <span class="color-swatch swatch-line plant-left-color"></span>
+                    GROWTH: Represents ~99.5% of total VC funding ($140B+).
+                </div>
+                <div class="key-item">
+                    <span class="color-swatch swatch-round berry-left-color"></span>
+                    BLUE NODES: High deal volume & frequent "Mega Rounds" ($100M+).
+                </div>
+            </div>
+            <div class="key-panel">
+                <h3>DATA KEY: MINORITY (Black Founders)</h3>
+                <div class="key-item">
+                    <span class="color-swatch swatch-line plant-right-color"></span>
+                    GROWTH: Represents ~0.5% of total VC funding ($700M).
+                </div>
+                <div class="key-item">
+                    <span class="color-swatch swatch-round berry-right-color"></span>
+                    RED NODES: Extremely low deal volume (Only one "Mega Round" in '23).
+                </div>
+            </div>
         </div>
 
     </div>
@@ -298,7 +410,9 @@
             }, { passive: true });
         });
 
-        // --- SKETCH 1: MAJORITY ---
+        // ==========================================
+        // SKETCH 1: ALL OTHER FOUNDERS (Majority)
+        // ==========================================
         const s1 = (p) => {
             let currentString = "X";
             const rules = { "X": "F+[[X]-X]-F[-FX]+X", "F": "FF" };
@@ -315,12 +429,15 @@
 
             p.draw = () => {
                 p.background(13, 15, 11);
+
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
+
+                // SOURCE: Crunchbase 2024 Report (99.5% share)
                 let adjustedPercent = p.constrain(rawPercent * 1.5, 0, 1);
                 let charsToDraw = p.floor(p.map(adjustedPercent, 0, 1, 0, currentString.length));
 
-                document.getElementById('data-left').innerText = Math.floor(adjustedPercent * 100) + "%";
+                document.getElementById('data-left').innerText = (adjustedPercent * 99.5).toFixed(1) + "%";
 
                 p.resetMatrix();
                 p.translate(p.width / 2, 0);
@@ -336,6 +453,7 @@
                         p.translate(0, -len);
                     }
                     else if (c === "X") {
+                        // SOURCE: High Deal Volume
                         p.push();
                         p.noStroke();
                         p.fill(60, 120, 255);
@@ -364,7 +482,9 @@
             };
         };
 
-        // --- SKETCH 2: MINORITY ---
+        // ==========================================
+        // SKETCH 2: BLACK FOUNDERS (Minority)
+        // ==========================================
         const s2 = (p) => {
             let currentString = "F";
             const rules = { "F": "FF+[+F-F-F]-[-F+F+F]" };
@@ -381,13 +501,19 @@
 
             p.draw = () => {
                 p.background(13, 15, 11);
+
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
-                let limit = 0.35;
+
+                // SOURCE: Crunchbase 2024 Report (0.5% share)
+                // Visual limit set to 15% for visibility, text shows real data.
+                let limit = 0.15;
+
                 let adjustedPercent = p.constrain(rawPercent * limit, 0, limit);
                 let charsToDraw = p.floor(p.map(rawPercent, 0, 1, 0, currentString.length * limit));
 
-                document.getElementById('data-right').innerText = Math.floor(adjustedPercent * 100) + "%";
+                let displayVal = p.map(rawPercent, 0, 1, 0, 0.5);
+                document.getElementById('data-right').innerText = displayVal.toFixed(1) + "%";
 
                 p.resetMatrix();
                 p.translate(p.width / 2, 0);
@@ -402,12 +528,15 @@
                         p.line(0, 0, 0, -len);
                         p.translate(0, -len);
 
+                        // SOURCE: Low Deal Volume (5% chance)
                         if (currentString.charAt(i + 1) === ']') {
-                            p.push();
-                            p.noStroke();
-                            p.fill(220, 40, 40);
-                            p.circle(0, 0, 5);
-                            p.pop();
+                            if (p.random() < 0.05) {
+                                p.push();
+                                p.noStroke();
+                                p.fill(220, 40, 40);
+                                p.circle(0, 0, 5);
+                                p.pop();
+                            }
                         }
                     } else if (c === "+") p.rotate(angle);
                     else if (c === "-") p.rotate(-angle);
