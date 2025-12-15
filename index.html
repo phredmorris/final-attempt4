@@ -28,6 +28,7 @@
         }
 
         body {
+            /* THE MOVING THING (Noise + Gradient) */
             background-image:
                 url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"),
                 radial-gradient(circle at center, #2a3028 0%, #0d0f0b 50%, #000000 100%);
@@ -67,7 +68,9 @@
             border-left: none;
             border-right: none;
 
-            background-color: var(--card-bg);
+            /* CHANGED: Transparent so the animated body background shows through */
+            background-color: transparent;
+
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             position: relative;
             top: 0;
@@ -78,7 +81,10 @@
             flex: 0 0 50%;
             max-width: 50%;
             position: relative;
-            border-right: 15px solid var(--border-color);
+
+            /* You can adjust thickness here */
+            border-right: 11px solid var(--border-color);
+
             display: flex;
             flex-direction: column;
         }
@@ -115,6 +121,8 @@
             margin: 0;
             line-height: 1;
             color: var(--text-color);
+            /* Added text shadow so it pops against the noise */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         }
 
         .data-overlay p {
@@ -122,13 +130,16 @@
             text-transform: uppercase;
             color: var(--accent-color);
             margin: 0;
+            background: rgba(0, 0, 0, 0.6);
+            /* Small backing for readability */
+            padding: 2px 5px;
         }
 
         /* --- SWITCH STYLES --- */
         .switch-container {
             position: absolute;
             top: 50%;
-            left: 49.5%;
+            left: 50%;
             transform: translate(-50%, -50%);
             z-index: 100;
             display: flex;
@@ -218,7 +229,8 @@
             flex: 0 0 50%;
             max-width: 50%;
             padding: 15px;
-            border-right: 15px solid var(--border-color);
+            /* Adjust thickness here to match canvas-panel */
+            border-right: 11px solid var(--border-color);
             font-family: var(--font-data);
             font-size: 0.7rem;
             color: var(--text-color);
@@ -370,7 +382,7 @@
 
     <script>
         const toggleInput = document.getElementById('auto-scroll-toggle');
-        let autoScrollSpeed = 1.5; // Pixels per frame
+        let autoScrollSpeed = 3;
 
         function performScroll() {
             if (toggleInput.checked) {
@@ -383,27 +395,18 @@
             }
         }
 
-        // Event Listener for the switch
         toggleInput.addEventListener('change', () => {
             if (toggleInput.checked) {
                 performScroll();
             }
         });
 
-        // FIX: GLOBAL STOP LISTENERS
-        // We added a check to ignore clicks if they originate from the switch itself.
-        // This prevents the switch from fighting itself.
         const stopEvents = ['wheel', 'mousedown', 'touchstart', 'keydown', 'touchmove'];
         stopEvents.forEach(event => {
             window.addEventListener(event, (e) => {
-
-                // 1. Check if the click happened inside the switch container
                 if (e.target && e.target.closest('.switch-container')) {
-                    // If yes, do nothing (let the switch toggle normally)
                     return;
                 }
-
-                // 2. Otherwise, if the auto-scroll is ON, turn it OFF
                 if (toggleInput.checked) {
                     toggleInput.checked = false;
                 }
@@ -422,18 +425,19 @@
 
             p.setup = () => {
                 let container = document.getElementById('left-sketch');
+                // FIX: Use clientWidth to respect border thickness
                 let c = p.createCanvas(container.clientWidth, container.offsetHeight);
                 p.angleMode(p.DEGREES);
                 for (let i = 0; i < iterations; i++) generate();
             };
 
             p.draw = () => {
-                p.background(13, 15, 11);
+                // FIX: Use clear() instead of background() to let noise show through
+                p.clear();
 
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
 
-                // SOURCE: Crunchbase 2024 Report (99.5% share)
                 let adjustedPercent = p.constrain(rawPercent * 1.5, 0, 1);
                 let charsToDraw = p.floor(p.map(adjustedPercent, 0, 1, 0, currentString.length));
 
@@ -477,7 +481,7 @@
 
             p.windowResized = () => {
                 let container = document.getElementById('left-sketch');
-                let c = p.createCanvas(container.clientWidth, container.offsetHeight);
+                p.resizeCanvas(container.clientWidth, container.offsetHeight);
             };
         };
 
@@ -493,18 +497,19 @@
 
             p.setup = () => {
                 let container = document.getElementById('right-sketch');
+                // FIX: Use clientWidth here too
                 let c = p.createCanvas(container.clientWidth, container.offsetHeight);
                 p.angleMode(p.DEGREES);
                 for (let i = 0; i < iterations; i++) generate();
             };
 
             p.draw = () => {
-                p.background(13, 15, 11);
+                // FIX: Use clear() instead of background()
+                p.clear();
 
                 let maxScroll = document.body.scrollHeight - window.innerHeight;
                 let rawPercent = window.scrollY / maxScroll;
 
-                // SOURCE: Crunchbase 2024 Report (0.5% share)
                 let limit = 0.15;
 
                 let adjustedPercent = p.constrain(rawPercent * limit, 0, limit);
@@ -526,7 +531,6 @@
                         p.line(0, 0, 0, -len);
                         p.translate(0, -len);
 
-                        // Stable Berry Logic
                         if (currentString.charAt(i + 1) === ']') {
                             if ((i * 12345) % 100 < 5) {
                                 p.push();
@@ -554,7 +558,7 @@
 
             p.windowResized = () => {
                 let container = document.getElementById('right-sketch');
-                let c = p.createCanvas(container.clientWidth, container.offsetHeight);
+                p.resizeCanvas(container.clientWidth, container.offsetHeight);
             };
         };
 
