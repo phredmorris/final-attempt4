@@ -28,6 +28,7 @@
         }
 
         body {
+            /* GRAINY BACKGROUND */
             background-image:
                 url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"),
                 radial-gradient(circle at center, #2a3028 0%, #0d0f0b 50%, #000000 100%);
@@ -39,33 +40,48 @@
             color: var(--text-color);
             font-family: var(--font-heading);
             margin: 0;
-            overflow-x: hidden;
+
+            /* INITIALLY LOCKED (No Scroll) until Intro is done */
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* --- TEXT SECTIONS (Intro/Outro) --- */
-        .text-section {
-            min-height: 100vh;
+        /* --- INTRO OVERLAYS (Pages 1, 2, 3) --- */
+        .intro-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 4rem;
-            text-align: center;
-            position: relative;
-            z-index: 10;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease-in-out;
+            background: transparent;
         }
 
+        .intro-layer.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- TEXT CONTENT STYLES --- */
         .text-content {
             max-width: 800px;
-            background: rgba(13, 15, 11, 0.8);
+            background: rgba(13, 15, 11, 0.9);
             border: 1px solid var(--border-color);
-            padding: 40px;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 60px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
         }
 
         .text-content h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             margin: 0 0 1rem 0;
             color: var(--text-color);
             text-transform: uppercase;
@@ -81,27 +97,48 @@
         }
 
         .text-content p {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             line-height: 1.6;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
             color: #ddd;
         }
 
-        .scroll-indicator {
-            margin-top: 2rem;
-            font-family: var(--font-data);
-            font-size: 0.8rem;
+        .nav-btn {
+            background: transparent;
             color: var(--accent-color);
-            animation: bounce 2s infinite;
+            font-family: var(--font-data);
+            font-size: 1rem;
+            text-transform: uppercase;
+            border: 2px solid var(--accent-color);
+            padding: 15px 30px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        /* --- VIZ WRAPPER (The Tall Track) --- */
+        .nav-btn:hover {
+            background: var(--accent-color);
+            color: #0d0f0b;
+        }
+
+        /* --- MAIN SCROLL CONTAINER (Initially Hidden) --- */
+        #main-site-wrapper {
+            opacity: 0;
+            transition: opacity 2s ease;
+            display: none;
+        }
+
+        #main-site-wrapper.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        /* --- VIZ TRACK (Tall Scroll Area) --- */
         #viz-track {
             height: 400vh;
             position: relative;
         }
 
-        /* --- STICKY CONTAINER --- */
+        /* --- VIZ STICKY WRAPPER --- */
         .sticky-wrapper {
             position: sticky;
             top: 0;
@@ -114,17 +151,14 @@
             overflow: hidden;
         }
 
-        /* --- TOP CONTAINER (CANVASES) --- */
         .viz-container {
             display: flex;
             width: 100%;
-            height: 85vh;
+            height: 80vh;
             border-top: 5px solid var(--border-color);
             border-bottom: 5px solid var(--border-color);
             background-color: transparent;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             position: relative;
-            pointer-events: auto;
         }
 
         .canvas-panel {
@@ -180,18 +214,73 @@
             padding: 2px 5px;
         }
 
-        /* --- BOTTOM CONTAINER (KEY) --- */
+        /* --- CENTER SWITCH RESTORED --- */
+        .switch-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: #0d0f0b;
+            padding: 10px 18px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .switch-wrapper input {
+            display: none;
+        }
+
+        .toggle-track {
+            position: relative;
+            width: 30px;
+            height: 16px;
+            background-color: #333;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .toggle-track:before {
+            content: "";
+            position: absolute;
+            height: 12px;
+            width: 12px;
+            left: 1px;
+            bottom: 1px;
+            background-color: white;
+            transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .switch-wrapper input:checked+.toggle-track:before {
+            transform: translateX(14px);
+        }
+
+        .switch-wrapper input:checked+.toggle-track {
+            background-color: var(--accent-color);
+        }
+
+        /* --- KEY CONTAINER --- */
         .key-container {
             display: flex;
             width: 100%;
-            border-top: 5px solid var(--border-color);
+            height: 15vh;
             border-bottom: 5px solid var(--border-color);
             background-color: var(--card-bg);
-            margin-top: -10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            pointer-events: auto;
-            position: relative;
-            top: 0;
         }
 
         .key-panel {
@@ -257,14 +346,26 @@
             background-color: rgb(220, 40, 40);
         }
 
+        /* --- SOURCES SECTION (Below Viz) --- */
+        #sources-section {
+            position: relative;
+            z-index: 20;
+            min-height: 100vh;
+            background-color: #0d0f0b;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem;
+            border-top: 5px solid var(--border-color);
+        }
+
         /* --- TOP RIGHT CONTROLS --- */
         .top-controls {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
-            display: flex;
-            gap: 10px;
         }
 
         .control-btn {
@@ -278,7 +379,6 @@
             text-transform: uppercase;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             transition: all 0.2s ease;
-            pointer-events: auto;
         }
 
         .control-btn:hover {
@@ -299,25 +399,6 @@
                 background-position: 0 0, 0% 0%;
             }
         }
-
-        @keyframes bounce {
-
-            0%,
-            20%,
-            50%,
-            80%,
-            100% {
-                transform: translateY(0);
-            }
-
-            40% {
-                transform: translateY(-10px);
-            }
-
-            60% {
-                transform: translateY(-5px);
-            }
-        }
     </style>
 </head>
 
@@ -329,10 +410,9 @@
 
     <div class="top-controls">
         <button id="audio-btn" class="control-btn">UNMUTE SOUND</button>
-        <button id="auto-scroll-btn" class="control-btn">START AUTO-SCROLL</button>
     </div>
 
-    <section class="text-section" id="page-1">
+    <div class="intro-layer active" id="intro-1">
         <div class="text-content">
             <h1>The Funding Gap</h1>
             <h2>Visualizing Systemic Inequity</h2>
@@ -341,11 +421,11 @@
                 While innovation is universal, opportunity is not. This system explores the
                 stark disparity in funding allocation between Black founders and the broader market.
             </p>
-            <div class="scroll-indicator">SCROLL TO CONTINUE</div>
+            <button class="nav-btn" onclick="nextIntro(2)">CLICK TO CONTINUE</button>
         </div>
-    </section>
+    </div>
 
-    <section class="text-section" id="page-2">
+    <div class="intro-layer" id="intro-2">
         <div class="text-content">
             <h2>The Mathematics of Exclusion</h2>
             <p>
@@ -354,219 +434,233 @@
                 fewer "mega-rounds," and a systemic lockout from the innovation economy.
             </p>
             <p>
-                Below, we use L-System fractals to visualize this data.
+                Next, we use L-System fractals to visualize this data.
                 The growth of the digital flora corresponds directly to capital access.
             </p>
-            <div class="scroll-indicator">SCROLL TO VISUALIZE</div>
-        </div>
-    </section>
-
-    <div id="viz-track">
-        <div class="sticky-wrapper">
-
-            <div class="viz-container">
-                <div class="canvas-panel" id="left-sketch">
-                    <div class="panel-label">ALL OTHER ENTREPRENEURS</div>
-                    <div class="data-overlay">
-                        <h3 id="data-left">0%</h3>
-                        <p>ACCESS TO VENTURE CAPITAL</p>
-                    </div>
-                </div>
-
-                <div class="canvas-panel" id="right-sketch">
-                    <div class="panel-label">BLACK ENTREPRENEURS</div>
-                    <div class="data-overlay">
-                        <h3 id="data-right">0%</h3>
-                        <p>ACCESS TO VENTURE CAPITAL</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="key-container">
-                <div class="key-panel">
-                    <h3>DATA KEY: OTHER ENTREPRENEURS</h3>
-                    <div class="key-item">
-                        <span class="color-swatch swatch-line plant-left-color"></span>
-                        GROWTH: ~99.5% of total VC funding.
-                    </div>
-                    <div class="key-item">
-                        <span class="color-swatch swatch-round berry-left-color"></span>
-                        BLUE NODES: High deal volume.
-                    </div>
-                </div>
-                <div class="key-panel">
-                    <h3>DATA KEY: BLACK ENTREPRENEURS</h3>
-                    <div class="key-item">
-                        <span class="color-swatch swatch-line plant-right-color"></span>
-                        GROWTH: ~0.5% of total VC funding.
-                    </div>
-                    <div class="key-item">
-                        <span class="color-swatch swatch-round berry-right-color"></span>
-                        RED NODES: Low deal volume.
-                    </div>
-                </div>
-            </div>
-
+            <button class="nav-btn" onclick="nextIntro(3)">NEXT</button>
         </div>
     </div>
 
-    <section class="text-section" id="page-4">
+    <div class="intro-layer" id="intro-3">
         <div class="text-content">
-            <h2>Data Sources & Methodology</h2>
+            <h2>The Mechanism</h2>
             <p>
-                <strong>Primary Source:</strong> Crunchbase Diversity Report 2024.<br>
-                <strong>Funding Data:</strong> Total Global Venture Funding ($140B+) vs Funding Allocated to Black
-                Founders (~$700M).
+                You are about to enter the visualization.
             </p>
             <p>
-                This visualization was created to highlight the disparity not just in numbers,
-                but in the potential for growth.
+                <strong>Scroll down</strong> to distribute resources and grow the ecosystem.
+                <br>Or use the <strong>Auto-Scroll</strong> switch to automate the flow.
             </p>
-            <p
-                style="margin-top: 2rem; border-top: 1px solid #333; padding-top: 1rem; font-size: 0.8rem; color: var(--accent-color);">
-                CREATED BY [YOUR NAME HERE]
-            </p>
+            <button class="nav-btn" onclick="enterMainSite()">ENTER VISUALIZATION</button>
         </div>
-    </section>
+    </div>
+
+    <div id="main-site-wrapper">
+
+        <div id="viz-track">
+            <div class="sticky-wrapper">
+
+                <div class="viz-container">
+
+                    <div class="switch-container">
+                        <label class="switch-wrapper">
+                            <span>AUTO - SCROLL</span>
+                            <input type="checkbox" id="auto-scroll-toggle">
+                            <div class="toggle-track"></div>
+                        </label>
+                    </div>
+
+                    <div class="canvas-panel" id="left-sketch">
+                        <div class="panel-label">ALL OTHER ENTREPRENEURS</div>
+                        <div class="data-overlay">
+                            <h3 id="data-left">0%</h3>
+                            <p>ACCESS TO VENTURE CAPITAL</p>
+                        </div>
+                    </div>
+
+                    <div class="canvas-panel" id="right-sketch">
+                        <div class="panel-label">BLACK ENTREPRENEURS</div>
+                        <div class="data-overlay">
+                            <h3 id="data-right">0%</h3>
+                            <p>ACCESS TO VENTURE CAPITAL</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-container">
+                    <div class="key-panel">
+                        <h3>DATA KEY: OTHER ENTREPRENEURS</h3>
+                        <div class="key-item">
+                            <span class="color-swatch swatch-line plant-left-color"></span>
+                            GROWTH: ~99.5% of total VC funding.
+                        </div>
+                        <div class="key-item">
+                            <span class="color-swatch swatch-round berry-left-color"></span>
+                            BLUE NODES: High deal volume.
+                        </div>
+                    </div>
+                    <div class="key-panel">
+                        <h3>DATA KEY: BLACK ENTREPRENEURS</h3>
+                        <div class="key-item">
+                            <span class="color-swatch swatch-line plant-right-color"></span>
+                            GROWTH: ~0.5% of total VC funding.
+                        </div>
+                        <div class="key-item">
+                            <span class="color-swatch swatch-round berry-right-color"></span>
+                            RED NODES: Low deal volume.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="sources-section">
+            <div class="text-content">
+                <h2>Data Sources & Methodology</h2>
+                <p>
+                    <strong>Primary Source:</strong> Crunchbase Diversity Report 2024.<br>
+                    <strong>Funding Data:</strong> Total Global Venture Funding ($140B+) vs Funding Allocated to Black
+                    Founders (~$700M).
+                </p>
+                <p>
+                    This visualization was created to highlight the disparity not just in numbers,
+                    but in the potential for growth.
+                </p>
+                <p
+                    style="margin-top: 2rem; border-top: 1px solid #333; padding-top: 1rem; font-size: 0.8rem; color: var(--accent-color);">
+                    CREATED BY [YOUR NAME HERE]
+                </p>
+                <button class="nav-btn" onclick="location.reload()">RESTART EXPERIENCE</button>
+            </div>
+        </div>
+
+    </div>
 
     <script>
         const audioBtn = document.getElementById('audio-btn');
-        const scrollBtn = document.getElementById('auto-scroll-btn');
         const music = document.getElementById('bg-music');
+        const scrollToggle = document.getElementById('auto-scroll-toggle');
 
-        // --- VOLUME ---
+        // --- AUDIO ---
         music.volume = 0.3;
         let isAudioPlaying = false;
-        let isAutoScrolling = false;
-        let autoScrollSpeed = 3;
-
-        // --- AUDIO LOGIC ---
         function startAudio() {
             if (!isAudioPlaying) {
                 music.play().then(() => {
                     isAudioPlaying = true;
                     audioBtn.innerText = "MUTE SOUND";
-                }).catch(e => { console.log("Waiting for interaction"); });
+                }).catch(e => { });
             }
         }
-
         window.addEventListener('click', () => { startAudio(); }, { once: true });
-
         audioBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (!isAudioPlaying) {
-                startAudio();
-            } else {
+            if (!isAudioPlaying) startAudio();
+            else {
                 music.muted = !music.muted;
                 audioBtn.innerText = music.muted ? "UNMUTE SOUND" : "MUTE SOUND";
             }
         });
 
+        // --- NAVIGATION LOGIC ---
+        function nextIntro(pageId) {
+            // Find current active intro and fade it out
+            const current = document.querySelector('.intro-layer.active');
+            if (current) current.classList.remove('active');
+
+            // Wait 100ms then fade in next
+            setTimeout(() => {
+                document.getElementById('intro-' + pageId).classList.add('active');
+            }, 100);
+        }
+
+        function enterMainSite() {
+            document.getElementById('intro-3').classList.remove('active');
+            setTimeout(() => {
+                // Unlock Body Scroll
+                document.body.style.overflowY = 'auto';
+                document.body.style.height = 'auto';
+
+                // Show Main Wrapper
+                const main = document.getElementById('main-site-wrapper');
+                main.classList.add('visible');
+
+                // FORCE RESIZE of P5 canvases now that container is visible
+                window.dispatchEvent(new Event('resize'));
+            }, 1000);
+        }
+
         // --- AUTO SCROLL LOGIC ---
-        scrollBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            isAutoScrolling = !isAutoScrolling;
-
-            if (isAutoScrolling) {
-                scrollBtn.innerText = "STOP AUTO-SCROLL";
-                performScroll();
-            } else {
-                scrollBtn.innerText = "START AUTO-SCROLL";
-            }
-        });
-
-        function performScroll() {
-            if (isAutoScrolling) {
+        let autoScrollSpeed = 4;
+        function performAutoScroll() {
+            if (scrollToggle.checked) {
                 window.scrollBy(0, autoScrollSpeed);
-                // Stop at bottom
-                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-                    isAutoScrolling = false;
-                    scrollBtn.innerText = "START AUTO-SCROLL";
-                } else {
-                    requestAnimationFrame(performScroll);
-                }
+                requestAnimationFrame(performAutoScroll);
             }
         }
 
-        // Stop auto-scroll if user manually scrolls/clicks elsewhere
+        scrollToggle.addEventListener('change', () => {
+            if (scrollToggle.checked) performAutoScroll();
+        });
+
         const stopEvents = ['wheel', 'mousedown', 'touchstart', 'keydown', 'touchmove'];
         stopEvents.forEach(event => {
             window.addEventListener(event, (e) => {
-                // Ignore clicks on controls
-                if (e.target && e.target.closest('.top-controls')) return;
-
-                if (isAutoScrolling) {
-                    isAutoScrolling = false;
-                    scrollBtn.innerText = "START AUTO-SCROLL";
-                }
+                if (e.target && e.target.closest('.switch-container')) return;
+                if (scrollToggle.checked) scrollToggle.checked = false;
             }, { passive: true });
         });
 
-        // --- SCROLL CALCULATION HELPER ---
+
+        // --- SCROLL CALCULATION ---
         function getVizProgress() {
             const track = document.getElementById('viz-track');
-            const rect = track.getBoundingClientRect();
+            if (!track) return 0;
 
-            let start = 0;
-            let end = track.offsetHeight - window.innerHeight;
+            const rect = track.getBoundingClientRect();
+            let trackHeight = track.offsetHeight - window.innerHeight;
             let current = -rect.top;
 
-            let progress = current / end;
+            let progress = current / trackHeight;
             return Math.max(0, Math.min(1, progress));
         }
 
-        // ==========================================
-        // SKETCH 1: ALL OTHER FOUNDERS
-        // ==========================================
+        // --- P5.JS LOGIC ---
         const s1 = (p) => {
             let currentString = "X";
             const rules = { "X": "F+[[X]-X]-F[-FX]+X", "F": "FF" };
             const len = 6;
             const angle = 25;
             const iterations = 5;
-
             p.setup = () => {
                 let container = document.getElementById('left-sketch');
                 let c = p.createCanvas(container.clientWidth, container.offsetHeight);
                 p.angleMode(p.DEGREES);
                 for (let i = 0; i < iterations; i++) generate();
             };
-
             p.draw = () => {
                 p.clear();
 
                 let rawPercent = getVizProgress();
                 let adjustedPercent = p.constrain(rawPercent * 1.5, 0, 1);
                 let charsToDraw = p.floor(p.map(adjustedPercent, 0, 1, 0, currentString.length));
-
                 document.getElementById('data-left').innerText = (adjustedPercent * 99.5).toFixed(1) + "%";
-
                 p.resetMatrix();
                 p.translate(p.width / 2, 0);
                 p.rotate(180);
                 p.stroke(189, 239, 146);
                 p.strokeWeight(1);
-
                 for (let i = 0; i < charsToDraw; i++) {
                     let c = currentString.charAt(i);
-                    if (c === "F") {
-                        p.line(0, 0, 0, -len);
-                        p.translate(0, -len);
-                    }
-                    else if (c === "X") {
-                        p.push();
-                        p.noStroke();
-                        p.fill(60, 120, 255);
-                        p.circle(0, 0, 4);
-                        p.pop();
-                    }
+                    if (c === "F") { p.line(0, 0, 0, -len); p.translate(0, -len); }
+                    else if (c === "X") { p.push(); p.noStroke(); p.fill(60, 120, 255); p.circle(0, 0, 4); p.pop(); }
                     else if (c === "+") p.rotate(angle);
                     else if (c === "-") p.rotate(-angle);
                     else if (c === "[") p.push();
                     else if (c === "]") p.pop();
                 }
             };
-
             function generate() {
                 let next = "";
                 for (let i = 0; i < currentString.length; i++) {
@@ -577,57 +671,43 @@
             }
             p.windowResized = () => {
                 let container = document.getElementById('left-sketch');
-                p.resizeCanvas(container.clientWidth, container.offsetHeight);
+                if (container.clientWidth > 0) {
+                    p.resizeCanvas(container.clientWidth, container.offsetHeight);
+                }
             };
         };
 
-        // ==========================================
-        // SKETCH 2: BLACK FOUNDERS
-        // ==========================================
         const s2 = (p) => {
             let currentString = "F";
             const rules = { "F": "FF+[+F-F-F]-[-F+F+F]" };
             const len = 7;
             const angle = 22;
             const iterations = 4;
-
             p.setup = () => {
                 let container = document.getElementById('right-sketch');
                 let c = p.createCanvas(container.clientWidth, container.offsetHeight);
                 p.angleMode(p.DEGREES);
                 for (let i = 0; i < iterations; i++) generate();
             };
-
             p.draw = () => {
                 p.clear();
-
                 let rawPercent = getVizProgress();
                 let limit = 0.15;
                 let adjustedPercent = p.constrain(rawPercent * limit, 0, limit);
                 let charsToDraw = p.floor(p.map(rawPercent, 0, 1, 0, currentString.length * limit));
                 let displayVal = p.map(rawPercent, 0, 1, 0, 0.5);
-
                 document.getElementById('data-right').innerText = displayVal.toFixed(1) + "%";
-
                 p.resetMatrix();
                 p.translate(p.width / 2, 0);
                 p.rotate(180);
                 p.stroke(85, 158, 81, 200);
                 p.strokeWeight(1.5);
-
                 for (let i = 0; i < charsToDraw; i++) {
                     let c = currentString.charAt(i);
                     if (c === "F") {
-                        p.line(0, 0, 0, -len);
-                        p.translate(0, -len);
+                        p.line(0, 0, 0, -len); p.translate(0, -len);
                         if (currentString.charAt(i + 1) === ']') {
-                            if ((i * 12345) % 100 < 5) {
-                                p.push();
-                                p.noStroke();
-                                p.fill(220, 40, 40);
-                                p.circle(0, 0, 5);
-                                p.pop();
-                            }
+                            if ((i * 12345) % 100 < 5) { p.push(); p.noStroke(); p.fill(220, 40, 40); p.circle(0, 0, 5); p.pop(); }
                         }
                     } else if (c === "+") p.rotate(angle);
                     else if (c === "-") p.rotate(-angle);
@@ -635,7 +715,6 @@
                     else if (c === "]") p.pop();
                 }
             };
-
             function generate() {
                 let next = "";
                 for (let i = 0; i < currentString.length; i++) {
@@ -646,7 +725,9 @@
             }
             p.windowResized = () => {
                 let container = document.getElementById('right-sketch');
-                p.resizeCanvas(container.clientWidth, container.offsetHeight);
+                if (container.clientWidth > 0) {
+                    p.resizeCanvas(container.clientWidth, container.offsetHeight);
+                }
             };
         };
 
