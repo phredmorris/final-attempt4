@@ -1,6 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 
+
+<!-- hiiiiii working on this was so much fun:D
+
+      .-.,     ,.-.
+ '-.  /:::\\   //:::\  .-'
+ '-.\|':':' `"` ':':'|/.-'
+ `-./`. .-=-. .-=-. .`\.-`
+   /=- /     |     \ -=\
+  ;   |      |      |   ;
+  |=-.|______|______|.-=|
+  |==  \  0 /_\ 0  /  ==|
+  |=   /'---( )---'\   =|
+   \   \:   .'.   :/   /
+    `\= '--`   `--' =/'
+      `-=._     _.=-'
+           `"""`
+
+
+I have eaten
+the plums
+that were in
+the icebox
+
+and which
+you were probably
+saving
+for breakfast
+
+Forgive me
+they were delicious
+so sweet
+and so cold
+
+(Poem by William Carlos Williams)
+-->
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -135,7 +171,7 @@
         /* --- VIZ TRACK (Tall Scroll Area) --- */
         /* 1200vh to slow down the growth experience */
         #viz-track {
-            height: 2000vh;
+            height: 1200vh;
             position: relative;
         }
 
@@ -155,10 +191,7 @@
         .viz-container {
             display: flex;
             width: 100%;
-
-            /* INCREASED HEIGHT slightly to account for smaller key container */
             height: 82vh;
-
             border-top: 5px solid var(--border-color);
             border-bottom: 5px solid var(--border-color);
             background-color: transparent;
@@ -281,10 +314,7 @@
         .key-container {
             display: flex;
             width: 100%;
-
-            /* REDUCED HEIGHT to remove excess bottom space */
             height: 18vh;
-
             border-bottom: 5px solid var(--border-color);
             background-color: var(--card-bg);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -353,18 +383,23 @@
             background-color: rgb(220, 40, 40);
         }
 
-        /* --- SOURCES SECTION (Below Viz) --- */
+        /* --- SOURCES SECTION (UPDATED FOR BETTER TRANSITION) --- */
         #sources-section {
             position: relative;
             z-index: 20;
             min-height: 100vh;
             background-color: #0d0f0b;
+
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 4rem;
+
             border-top: 5px solid var(--border-color);
+
+            /* ADDED: Box shadow to create depth/overlay effect */
+            box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.95);
         }
 
         /* --- TOP RIGHT CONTROLS --- */
@@ -439,11 +474,11 @@
                 Algorithmic bias and network effects compound over time.
                 A lack of initial "seed" capital prevents growth, leading to smaller networks,
                 fewer "mega-rounds," and a systemic lockout from the innovation economy.
-            </p>
-            <p>
+
                 Next, we use L-System fractals to visualize this data.
                 The growth of the digital flora corresponds directly to capital access.
             </p>
+
             <button class="nav-btn" onclick="nextIntro(3)">NEXT</button>
         </div>
     </div>
@@ -536,7 +571,7 @@
                 </p>
                 <p
                     style="margin-top: 2rem; border-top: 1px solid #333; padding-top: 1rem; font-size: 0.8rem; color: var(--accent-color);">
-                    CREATED BY [YOUR NAME HERE]
+                    CREATED BY Fred M. Whitley III
                 </p>
                 <button class="nav-btn" onclick="location.reload()">RESTART EXPERIENCE</button>
             </div>
@@ -621,7 +656,7 @@
         });
 
 
-        // --- SCROLL CALCULATION ---
+        // --- SCROLL CALCULATION (UPDATED FOR BUFFER) ---
         function getVizProgress() {
             const track = document.getElementById('viz-track');
             if (!track) return 0;
@@ -631,6 +666,11 @@
             let current = -rect.top;
 
             let progress = current / trackHeight;
+
+            // BUFFER: Multiply by 1.1 so it finishes at ~90% scroll
+            // This ensures user sees full tree before footer slides up
+            progress = progress * 1.1;
+
             return Math.max(0, Math.min(1, progress));
         }
 
