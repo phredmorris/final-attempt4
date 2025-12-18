@@ -60,7 +60,7 @@
             z-index: 50;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 1.5s ease-in-out;
+            transition: opacity 0.8s ease-in-out;
             background: transparent;
         }
 
@@ -133,8 +133,9 @@
         }
 
         /* --- VIZ TRACK (Tall Scroll Area) --- */
+        /* 1200vh to slow down the growth experience */
         #viz-track {
-            height: 400vh;
+            height: 1200vh;
             position: relative;
         }
 
@@ -154,7 +155,10 @@
         .viz-container {
             display: flex;
             width: 100%;
-            height: 80vh;
+
+            /* INCREASED HEIGHT slightly to account for smaller key container */
+            height: 82vh;
+
             border-top: 5px solid var(--border-color);
             border-bottom: 5px solid var(--border-color);
             background-color: transparent;
@@ -277,7 +281,10 @@
         .key-container {
             display: flex;
             width: 100%;
-            height: 15vh;
+
+            /* REDUCED HEIGHT to remove excess bottom space */
+            height: 18vh;
+
             border-bottom: 5px solid var(--border-color);
             background-color: var(--card-bg);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -569,7 +576,7 @@
             const current = document.querySelector('.intro-layer.active');
             if (current) current.classList.remove('active');
 
-            // Wait 100ms then fade in next
+            // Wait shorter time then fade in next
             setTimeout(() => {
                 document.getElementById('intro-' + pageId).classList.add('active');
             }, 100);
@@ -588,11 +595,11 @@
 
                 // FORCE RESIZE of P5 canvases now that container is visible
                 window.dispatchEvent(new Event('resize'));
-            }, 1000);
+            }, 800); // Wait for fade out
         }
 
         // --- AUTO SCROLL LOGIC ---
-        let autoScrollSpeed = 4;
+        let autoScrollSpeed = 6; // Increased slightly for longer track
         function performAutoScroll() {
             if (scrollToggle.checked) {
                 window.scrollBy(0, autoScrollSpeed);
@@ -607,6 +614,7 @@
         const stopEvents = ['wheel', 'mousedown', 'touchstart', 'keydown', 'touchmove'];
         stopEvents.forEach(event => {
             window.addEventListener(event, (e) => {
+                // Ignore clicks on the switch itself
                 if (e.target && e.target.closest('.switch-container')) return;
                 if (scrollToggle.checked) scrollToggle.checked = false;
             }, { passive: true });
@@ -630,9 +638,11 @@
         const s1 = (p) => {
             let currentString = "X";
             const rules = { "X": "F+[[X]-X]-F[-FX]+X", "F": "FF" };
-            const len = 6;
+            // CHANGED: Increased Density (Iterations 6) but shorter lines to fit (Len 4.5)
+            const len = 4.5;
             const angle = 25;
-            const iterations = 5;
+            const iterations = 6; // INCREASED TO GENERATE MORE
+
             p.setup = () => {
                 let container = document.getElementById('left-sketch');
                 let c = p.createCanvas(container.clientWidth, container.offsetHeight);
@@ -643,14 +653,19 @@
                 p.clear();
 
                 let rawPercent = getVizProgress();
-                let adjustedPercent = p.constrain(rawPercent * 1.5, 0, 1);
+
+                // SLOWER INITIAL GROWTH using Power Curve
+                let slowerGrowthCurve = Math.pow(rawPercent, 2.5);
+
+                let adjustedPercent = p.constrain(slowerGrowthCurve, 0, 1);
+
                 let charsToDraw = p.floor(p.map(adjustedPercent, 0, 1, 0, currentString.length));
                 document.getElementById('data-left').innerText = (adjustedPercent * 99.5).toFixed(1) + "%";
                 p.resetMatrix();
                 p.translate(p.width / 2, 0);
                 p.rotate(180);
                 p.stroke(189, 239, 146);
-                p.strokeWeight(1);
+                p.strokeWeight(1.2); // Slightly thicker for "more" feel
                 for (let i = 0; i < charsToDraw; i++) {
                     let c = currentString.charAt(i);
                     if (c === "F") { p.line(0, 0, 0, -len); p.translate(0, -len); }
