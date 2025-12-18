@@ -56,6 +56,30 @@
             pointer-events: none;
         }
 
+        /* --- MUTE BUTTON (TOP RIGHT) --- */
+        #audio-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #0d0f0b;
+            color: var(--accent-color);
+            border: 2px solid var(--border-color);
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            padding: 8px 15px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s ease;
+            pointer-events: auto;
+        }
+
+        #audio-btn:hover {
+            background: var(--accent-color);
+            color: #0d0f0b;
+        }
+
         /* --- TOP CONTAINER (CANVASES) --- */
         .viz-container {
             display: flex;
@@ -131,7 +155,6 @@
         }
 
         /* --- SWITCH STYLES --- */
-        /* --- UPDATED SWITCH STYLES (SCALED DOWN) --- */
         .switch-container {
             position: absolute;
             top: 50%;
@@ -146,15 +169,12 @@
         .switch-wrapper {
             display: flex;
             align-items: center;
-
-            /* SCALED DOWN: Reduced gap, font-size, and padding */
             gap: 10px;
             font-family: var(--font-data);
             font-size: 0.8rem;
             color: var(--accent-color);
             background: #0d0f0b;
             padding: 10px 18px;
-
             border: 2px solid var(--border-color);
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
             cursor: pointer;
@@ -167,7 +187,6 @@
 
         .toggle-track {
             position: relative;
-            /* SCALED DOWN: Smaller track dimensions */
             width: 30px;
             height: 16px;
             background-color: #333;
@@ -178,60 +197,20 @@
         .toggle-track:before {
             content: "";
             position: absolute;
-
-            /* SCALED DOWN: Smaller knob */
             height: 12px;
             width: 12px;
-
-            /* CENTERED: 1px spacing puts it exactly in the middle of the 14px inner space */
             left: 1px;
             bottom: 1px;
-
             background-color: white;
             transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
-        /* CALCULATED TRAVEL: 28px inner width - 12px knob - 2px total padding = 14px move */
         .switch-wrapper input:checked+.toggle-track:before {
             transform: translateX(14px);
         }
 
         .switch-wrapper input:checked+.toggle-track {
             background-color: var(--accent-color);
-        }
-
-        /* SCALED DOWN: Reduced travel distance for the knob */
-        .switch-wrapper input:checked+.toggle-track:before {
-            transform: translateX(14px);
-        }
-
-        .switch-wrapper input:checked+.toggle-track {
-            background-color: var(--accent-color);
-        }
-
-
-
-
-        /* --- SCROLL PROMPT (Above Button, No Flashing) --- */
-        .scroll-prompt {
-            position: absolute;
-
-            /* Positioned just above the center switch (which is at 50%) */
-            top: 43%;
-            left: 50%;
-            transform: translate(-50%, -100%);
-
-            z-index: 50;
-            font-family: var(--font-data);
-            font-size: 0.8rem;
-
-            /* Animation Removed */
-            /* animation: blink 2s infinite; */
-
-            background: #0d0f0b;
-            padding: 7px 10px;
-            border: 2px solid var(--accent-color);
-            pointer-events: auto;
         }
 
         /* --- BOTTOM CONTAINER (KEY) --- */
@@ -331,14 +310,15 @@
 
 <body>
 
+    <audio id="bg-music" loop>
+        <source src="Butthole Surfers - Pepper.mp3" type="audio/mpeg">
+    </audio>
+
+    <button id="audio-btn">UNMUTE SOUND</button>
+
     <div class="center-wrapper">
 
         <div class="viz-container">
-
-            <!--<div class="scroll-prompt">
-                SCROLL TO DISTRIBUTE RESOURCES
-            </div>-->
-            <!-- commented out for now-->
 
             <div class="switch-container">
                 <label class="switch-wrapper">
@@ -395,6 +375,57 @@
 
     <script>
         const toggleInput = document.getElementById('auto-scroll-toggle');
+        const audioBtn = document.getElementById('audio-btn');
+        const music = document.getElementById('bg-music');
+
+        let isPlaying = false;
+
+        // ===============================================
+        //  AUDIO SETTINGS
+        // ===============================================
+
+        // --- ADJUST VOLUME HERE (Range: 0.0 to 1.0) ---
+        music.volume = 0.3;
+
+        // ===============================================
+
+        // Function to start audio
+        function startAudio() {
+            if (!isPlaying) {
+                music.play().then(() => {
+                    isPlaying = true;
+                    // Once playing, the button allows you to mute
+                    audioBtn.innerText = "MUTE SOUND";
+                }).catch(e => {
+                    console.log("Auto-play prevented by browser. Waiting for interaction.");
+                });
+            }
+        }
+
+        // 1. LISTEN FOR GLOBAL CLICK TO START AUDIO
+        // This ensures music starts on the very first click anywhere on the page
+        window.addEventListener('click', () => {
+            startAudio();
+        }, { once: true }); // Only runs once
+
+
+        // 2. BUTTON LOGIC (MUTE/UNMUTE)
+        audioBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Don't trigger the global click again if hitting the button
+
+            if (!isPlaying) {
+                // If button is clicked before any other click, start the audio
+                startAudio();
+            } else {
+                // Toggle Mute
+                music.muted = !music.muted;
+                // Update Button Text
+                audioBtn.innerText = music.muted ? "UNMUTE SOUND" : "MUTE SOUND";
+            }
+        });
+
+
+        // --- AUTO SCROLL LOGIC ---
         let autoScrollSpeed = 3;
 
         function performScroll() {
@@ -497,8 +528,6 @@
             };
         };
 
-        
-
         // ==========================================
         // SKETCH 2: BLACK FOUNDERS (Minority)
         // ==========================================
@@ -577,9 +606,6 @@
 
         new p5(s1, 'left-sketch');
         new p5(s2, 'right-sketch');
-
-
-
 
     </script>
 </body>
