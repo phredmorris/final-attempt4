@@ -63,6 +63,14 @@ and so cold
             --font-data: 'Space Grotesk', monospace;
         }
 
+
+
+
+
+
+
+
+
         body {
             /* GRAINY BACKGROUND */
             background-image:
@@ -81,6 +89,13 @@ and so cold
             height: 100vh;
             overflow: hidden;
         }
+
+
+
+
+
+
+
 
         /* --- INTRO OVERLAYS (Pages 1, 2, 3) --- */
         .intro-layer {
@@ -104,6 +119,16 @@ and so cold
             opacity: 1;
             pointer-events: auto;
         }
+
+
+
+
+
+
+
+
+
+
 
         /* --- TEXT CONTENT STYLES --- */
         .text-content {
@@ -156,6 +181,14 @@ and so cold
             color: #0d0f0b;
         }
 
+
+
+
+
+
+
+
+
         /* --- MAIN SCROLL CONTAINER (Initially Hidden) --- */
         #main-site-wrapper {
             opacity: 0;
@@ -168,12 +201,28 @@ and so cold
             opacity: 1;
         }
 
+
+
+
+
+
+
+
+
         /* --- VIZ TRACK (Tall Scroll Area) --- */
         /* 1200vh to slow down the growth experience */
         #viz-track {
             height: 1200vh;
             position: relative;
         }
+
+
+
+
+
+
+
+
 
         /* --- VIZ STICKY WRAPPER --- */
         .sticky-wrapper {
@@ -251,6 +300,17 @@ and so cold
             padding: 2px 5px;
         }
 
+
+
+
+
+
+
+
+
+
+
+
         /* --- CENTER SWITCH RESTORED --- */
         .switch-container {
             position: absolute;
@@ -310,6 +370,13 @@ and so cold
             background-color: var(--accent-color);
         }
 
+
+
+
+
+
+
+
         /* --- KEY CONTAINER --- */
         .key-container {
             display: flex;
@@ -326,7 +393,7 @@ and so cold
             padding: 15px;
             border-right: 7px solid var(--border-color);
             font-family: var(--font-data);
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: var(--text-color);
         }
 
@@ -383,6 +450,16 @@ and so cold
             background-color: rgb(220, 40, 40);
         }
 
+
+
+
+
+
+
+
+
+
+
         /* --- SOURCES SECTION (UPDATED FOR BETTER TRANSITION) --- */
         #sources-section {
             position: relative;
@@ -401,6 +478,19 @@ and so cold
             /* ADDED: Box shadow to create depth/overlay effect */
             box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.95);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         /* --- TOP RIGHT CONTROLS --- */
         .top-controls {
@@ -444,6 +534,15 @@ and so cold
     </style>
 </head>
 
+
+
+
+
+
+
+
+
+
 <body>
 
     <audio id="bg-music" loop>
@@ -471,13 +570,10 @@ and so cold
         <div class="text-content">
             <h2>The Mathematics of Exclusion</h2>
             <p>
-                Algorithmic bias and network effects compound over time.
+                The effects of Algorithmic bias and systemic racism compound over time.
                 A lack of initial "seed" capital prevents growth, leading to smaller networks,
-                fewer "mega-rounds," and a systemic lockout from the innovation economy.
-
-                Next, we use L-System fractals to visualize this data.
-                The growth of the digital flora corresponds directly to capital access.
-            </p>
+                fewer "mega-rounds," and a systemic lockout from the innovation economy. In other words, many black
+                entrepreneurs need a "headstart" to get a "headstart" in the world of venture capitalism. </p>
 
             <button class="nav-btn" onclick="nextIntro(3)">NEXT</button>
         </div>
@@ -579,6 +675,16 @@ and so cold
 
     </div>
 
+
+
+
+
+
+
+
+
+
+
     <script>
         const audioBtn = document.getElementById('audio-btn');
         const music = document.getElementById('bg-music');
@@ -604,6 +710,14 @@ and so cold
                 audioBtn.innerText = music.muted ? "UNMUTE SOUND" : "MUTE SOUND";
             }
         });
+
+
+
+
+
+
+
+
 
         // --- NAVIGATION LOGIC ---
         function nextIntro(pageId) {
@@ -633,6 +747,14 @@ and so cold
             }, 800); // Wait for fade out
         }
 
+
+
+
+
+
+
+
+
         // --- AUTO SCROLL LOGIC ---
         let autoScrollSpeed = 6; // Increased slightly for longer track
         function performAutoScroll() {
@@ -656,6 +778,15 @@ and so cold
         });
 
 
+
+
+
+
+
+
+
+
+
         // --- SCROLL CALCULATION (UPDATED FOR BUFFER) ---
         function getVizProgress() {
             const track = document.getElementById('viz-track');
@@ -673,6 +804,15 @@ and so cold
 
             return Math.max(0, Math.min(1, progress));
         }
+
+
+
+
+
+
+
+
+
 
         // --- P5.JS LOGIC ---
         const s1 = (p) => {
